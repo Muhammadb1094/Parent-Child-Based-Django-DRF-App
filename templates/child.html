@@ -1,0 +1,112 @@
+{% extends "base.html" %}
+
+{% block links %}
+
+
+{% endblock %}
+
+{% block body %}
+<input id="base_url" value="{{ base_url }}" hidden>
+<form id="child_form" method="POST" class="text-center border-top p-2 text-primary">
+        {% csrf_token %}
+
+        <h3>Add New Child and Sub Child Titles:</h3>
+        <h6 class="py-1 text-dark">Select Parent Title:</h6>
+        <select id="selected" class="form-control text-center my-3" required>
+                {% for topic in topics %}
+                        <option value="{{topic.id}}">{{ topic.title }}</option>
+                {% endfor %}
+        </select>
+        <input id="title" type="text" name="title" placeholder="Enter Title Text" required
+               class="form-control  col-lg-4 col-md-6">
+        <div  class="text-center text-success" id="output" ></div>
+        <input  type="submit" name="submit" value="submit" class="btn m-2 btn-outline-primary" >
+    </form>
+
+
+<script>
+     $('#child_form').on('submit', function(e){
+
+     e.preventDefault();
+
+       $.ajax({
+            type : "POST",
+            url: "{% url 'topics' %}",
+            data: {
+             title : $('#title').val(),
+             parent : $('#selected').val(),
+             csrfmiddlewaretoken: '{{ csrf_token }}',
+             dataType: "json",
+
+            },
+
+            success: function(data){
+               document.getElementById("output").innerHTML  = "Child Added Successfully";
+               var base_url = document.getElementById("base_url").value;
+
+    fetch( base_url + '/api/topics')
+      .then((response) => {
+        return response.json();
+      })
+      .then((data) => {
+        console.log(data);
+
+
+                        document.getElementById("myList").innerHTML = null;
+
+                        let list = document.getElementById("myList");
+                        if (data.length ==0){
+
+                            let li = document.createElement("li");
+                            li.innerText = "Nothing Added Yet!";
+
+                            list.appendChild(li);
+                        }
+                         function def(json){
+                                  json.forEach((item)=>{
+
+                                      let li = document.createElement("li");
+                                      li.innerText = item["title"] ;
+
+                                      let a = document.createElement("a");
+                                      a.value = "ADD CHILD";
+
+
+                                      list.appendChild(li);
+                                      list.append(a);
+
+                                  if(item["childs"].length != 0){
+
+                                       return def(item["childs"])
+                                  }
+                                  else
+                                  {
+
+                                    return false;
+                                  }
+
+                                });
+                         }
+                         def(data);
+
+                      });
+                document.getElementById("output").innerHTML = "Updated Successfully!";
+                document.getElementById("title").value = null;
+
+               document.getElementById("title").value = "";
+
+            },
+
+            failure: function() {
+                document.getElementById("output").innerHTML  = "Fail to ADD Topic!" ;
+            }
+
+
+        });
+
+
+             });
+</script>
+
+{% endblock %}
+

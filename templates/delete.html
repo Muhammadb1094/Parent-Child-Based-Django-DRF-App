@@ -1,0 +1,108 @@
+{% extends "base.html" %}
+
+{% block links %}
+
+
+{% endblock %}
+
+{% block body %}
+<input id="base_url" value="{{ base_url }}" hidden>
+<form id="update_form" method="POST" class="text-center border-top p-2 text-primary">
+        {% csrf_token %}
+
+        <h3>Delete Title:</h3>
+
+        <select id="selected" class="form-control text-center my-3" required>
+                {% for topic in topics %}
+                        <option value="{{topic.id}}">{{ topic.title }}</option>
+                {% endfor %}
+        </select>
+        <div  class="text-center text-success" id="output" ></div>
+        <input  type="submit" name="submit" value="submit" class="btn m-2 btn-outline-primary" >
+    </form>
+
+
+<script>
+
+     $('#update_form').on('submit', function(e){
+
+     e.preventDefault();
+       var id  = document.getElementById("selected").value;
+       console.log(id);
+       var base_url = document.getElementById("base_url").value;
+       $.ajax({
+            type : "DELETE",
+            url: base_url + '/api/one/topic/' + id + '/',
+            data: {
+             csrfmiddlewaretoken: '{{ csrf_token }}',
+             dataType: "json",
+
+            },
+
+            success: function(data){
+
+                        var base_url = document.getElementById("base_url").value;
+
+    fetch( base_url + '/api/topics')
+      .then((response) => {
+        return response.json();
+      })
+      .then((data) => {
+        console.log(data);
+
+
+                        document.getElementById("myList").innerHTML = null;
+
+                        let list = document.getElementById("myList");
+                        if (data.length ==0){
+
+                            let li = document.createElement("li");
+                            li.innerText = "Nothing Added Yet!";
+
+                            list.appendChild(li);
+                        }
+                         function def(json){
+                                  json.forEach((item)=>{
+
+                                      let li = document.createElement("li");
+                                      li.innerText = item["title"] ;
+
+                                      let a = document.createElement("a");
+                                      a.value = "ADD CHILD";
+
+
+                                      list.appendChild(li);
+                                      list.append(a);
+
+                                  if(item["childs"].length != 0){
+
+                                       return def(item["childs"])
+                                  }
+                                  else
+                                  {
+
+                                    return false;
+                                  }
+
+                                });
+                         }
+                         def(data);
+
+                      });
+                document.getElementById("output").innerHTML = "Updated Successfully!";
+                document.getElementById("title").value = null;
+            },
+
+            failure: function() {
+                document.getElementById("output").innerHTML  = "Fail to ADD Topic!";
+            }
+
+
+        });
+
+
+             });
+</script>
+
+{% endblock %}
+

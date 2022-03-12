@@ -1,0 +1,60 @@
+{% extends "base.html" %}
+
+{% block links %}
+
+
+{% endblock %}
+
+{% block body %}
+<input id="base_url" value="{{ base_url }}" hidden>
+
+<form id="form" method="POST" class="text-center border-top p-2 text-primary ">
+        {% csrf_token %}
+
+        <h3>Enter New Title:</h3>
+        <input id="title" type="text" name="title" required class="form-control">
+        <div  class="text-center text-success" id="output" ></div>
+        <input  type="submit" name="submit" value="submit" class="btn m-2 btn-outline-primary" >
+    </form>
+
+<script>
+     $('#form').on('submit', function(e){
+
+     e.preventDefault();
+
+       $.ajax({
+            type : "POST",
+            url: "{% url 'topics' %}",
+            data: {
+             title : $('#title').val(),
+             parent : "",
+             csrfmiddlewaretoken: '{{ csrf_token }}',
+             dataType: "json",
+
+            },
+
+            success: function(data){
+               document.getElementById("output").innerHTML  = "Topic Added Successfully";
+
+               let list = document.getElementById("myList");
+               let li = document.createElement("li");
+                  li.innerText = $('#title').val();
+                  list.appendChild(li);
+
+               document.getElementById("title").value = "";
+
+            },
+
+            failure: function() {
+                document.getElementById("output").innerHTML  = "Fail to ADD Topic!" ;
+            }
+
+
+        });
+
+
+             });
+</script>
+
+{% endblock %}
+
